@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADO Daily Summary Agent — Integration Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── RESET & BASE ───────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #070b14;
+    --bg2:       #0d1121;
+    --bg3:       #111827;
+    --bg4:       #1a2035;
+    --border:    #1e2a40;
+    --border2:   #2a3a55;
+    --text:      #e2e8f0;
+    --text2:     #94a3b8;
+    --text3:     #64748b;
+    --blue:      #3b82f6;
+    --blue2:     #1d4ed8;
+    --cyan:      #06b6d4;
+    --green:     #10b981;
+    --orange:    #f59e0b;
+    --red:       #ef4444;
+    --purple:    #a78bfa;
+    --teal:      #14b8a6;
+    --accent:    #6366f1;
+    --accent2:   #4f46e5;
+    --gold:      #fbbf24;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'Outfit', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ──────────────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── LAYOUT ─────────────────────────────────────────────────────────── */
+  .page-wrap { display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ─────────────────────────────────────────────────────────── */
+  .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 0 40px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-logo {
+    padding: 0 22px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .sidebar-logo .logo-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 10px;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+  }
+  .sidebar-logo .logo-title {
+    font-family: var(--font-head);
+    font-weight: 800; font-size: 13px;
+    color: var(--text); line-height: 1.3;
+    letter-spacing: -0.3px;
+  }
+  .sidebar-logo .logo-sub {
+    font-size: 11px; color: var(--text3);
+    margin-top: 2px;
+  }
+
+  .nav-section { padding: 0 12px; margin-bottom: 8px; }
+  .nav-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--text3); padding: 0 10px;
+    margin-bottom: 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 7px;
+    color: var(--text2); text-decoration: none;
+    font-size: 13px; font-weight: 500;
+    transition: all 0.15s; cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); border-color: var(--border); }
+  .nav-item.active { background: rgba(99,102,241,0.12); color: var(--accent); border-color: rgba(99,102,241,0.3); }
+  .nav-item .nav-icon { font-size: 14px; width: 18px; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto; font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 10px;
+  }
+
+  .sidebar-footer {
+    margin-top: auto; padding: 16px 22px 0;
+    border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--text3); line-height: 1.5;
+  }
+
+  /* ── MAIN CONTENT ────────────────────────────────────────────────────── */
+  .main {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+  }
+
+  /* ── HERO ────────────────────────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, #080c1c 0%, #0d1428 50%, #091020 100%);
+    padding: 64px 64px 56px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 200px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(99,102,241,0.1);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 12px; font-weight: 600; color: var(--accent);
+    margin-bottom: 20px; font-family: var(--font-mono);
+  }
+  .hero h1 {
+    font-family: var(--font-head);
+    font-size: 42px; font-weight: 800;
+    line-height: 1.15; letter-spacing: -1px;
+    color: var(--text); margin-bottom: 16px;
+  }
+  .hero h1 span { color: var(--cyan); }
+  .hero-desc {
+    font-size: 16px; color: var(--text2);
+    max-width: 580px; line-height: 1.7;
+    margin-bottom: 32px;
+  }
+  .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 7px 14px;
+    font-size: 12px; font-weight: 600; color: var(--text2);
+  }
+  .hero-pill span { font-size: 14px; }
+
+  /* ── CONTENT AREA ────────────────────────────────────────────────────── */
+  .content { padding: 48px 64px 80px; max-width: 960px; }
+
+  /* ── BEFORE/AFTER TABLE ──────────────────────────────────────────────── */
+  .compare-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border); margin: 24px 0;
+  }
+  .compare-hdr {
+    padding: 12px 18px; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .compare-hdr.before { background: rgba(239,68,68,0.12); color: var(--red); border-bottom: 1px solid var(--border); }
+  .compare-hdr.after  { background: rgba(16,185,129,0.12); color: var(--green); border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .compare-row { display: contents; }
+  .compare-cell {
+    padding: 11px 18px; font-size: 13.5px; color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .compare-cell.after { border-left: 1px solid var(--border); color: var(--text); }
+  .compare-cell:last-child, .compare-cell.after:last-child { border-bottom: none; }
+
+  /* ── ARCH DIAGRAM ────────────────────────────────────────────────────── */
+  .arch-diagram {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 12px; padding: 28px 24px; margin: 24px 0;
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; flex-wrap: wrap;
+  }
+  .arch-node {
+    background: var(--bg4); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 14px 18px; text-align: center;
+    min-width: 160px;
+  }
+  .arch-node .an-icon { font-size: 26px; margin-bottom: 6px; }
+  .arch-node .an-title { font-weight: 700; font-size: 13px; color: var(--text); }
+  .arch-node .an-sub { font-size: 11px; color: var(--text3); margin-top: 3px; line-height: 1.4; }
+  .arch-arrow {
+    font-size: 22px; color: var(--accent); margin: 0 12px;
+    display: flex; align-items: center;
+  }
+
+  /* ── PHASE HEADER ────────────────────────────────────────────────────── */
+  .phase-header {
+    display: flex; align-items: center; gap: 14px;
+    margin: 48px 0 28px; padding-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+  }
+  .phase-number {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-weight: 700; font-size: 16px;
+    flex-shrink: 0;
+  }
+  .phase-title { font-family: var(--font-head); font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+  .phase-time {
+    margin-left: auto; font-size: 11px; font-weight: 600;
+    background: var(--bg3); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 6px; color: var(--text3);
+    white-space: nowrap; font-family: var(--font-mono);
+  }
+
+  /* ── SECTION HEADING ─────────────────────────────────────────────────── */
+  .section-heading {
+    font-family: var(--font-head); font-size: 17px; font-weight: 700;
+    color: var(--text); margin: 32px 0 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-heading::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ── STEP LIST ───────────────────────────────────────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 0; margin: 16px 0; }
+  .step {
+    display: flex; gap: 16px; padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    animation: fadeUp 0.4s ease both;
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 2px;
+    font-family: var(--font-mono);
+  }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .step-desc { font-size: 13.5px; color: var(--text2); line-height: 1.65; }
+  .step-desc code {
+    font-family: var(--font-mono); font-size: 12px;
+    background: var(--bg4); color: var(--cyan);
+    padding: 1px 6px; border-radius: 4px;
+    border: 1px solid var(--border2);
+  }
+
+  /* ── CODE BLOCK ──────────────────────────────────────────────────────── */
+  .code-wrap { margin: 20px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border2); }
+  .code-header {
+    background: #0d1628; padding: 8px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-filename { font-family: var(--font-mono); font-size: 12px; color: var(--text3); }
+  .code-lang {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .copy-btn {
+    background: var(--bg4); border: 1px solid var(--border2);
+    color: var(--text3); font-size: 11px; padding: 3px 10px;
+    border-radius: 5px; cursor: pointer; font-family: var(--font-mono);
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { background: var(--border); color: var(--text); }
+  pre {
+    background: #080d1a;
+    padding: 20px 20px 20px 20px;
+    overflow-x: auto; margin: 0;
+    font-family: var(--font-mono);
+    font-size: 13px; line-height: 1.7;
+  }
+  .kw  { color: #89dceb; font-weight: 600; }  /* keywords */
+  .str { color: #a6e3a1; }                     /* strings */
+  .cm  { color: #6272a4; font-style: italic; } /* comments */
+  .fn  { color: #cba6f7; }                     /* functions */
+  .num { color: #fab387; }                     /* numbers/vars */
+  .op  { color: #89dceb; }                     /* operators */
+  .prop{ color: #f38ba8; }                     /* properties */
+  .plain { color: #cdd6f4; }                   /* default */
+
+  /* ── CALLOUT ─────────────────────────────────────────────────────────── */
+  .callout {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 16px; border-radius: 10px;
+    margin: 20px 0; font-size: 13.5px; line-height: 1.65;
+    border-left: 3px solid;
+  }
+  .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .callout-body strong { display: block; margin-bottom: 3px; font-size: 13px; }
+  .callout.info    { background: rgba(59,130,246,0.08);  border-color: var(--blue);   color: var(--text2); }
+  .callout.info strong { color: var(--blue); }
+  .callout.warn    { background: rgba(245,158,11,0.08);  border-color: var(--orange); color: var(--text2); }
+  .callout.warn strong { color: var(--orange); }
+  .callout.danger  { background: rgba(239,68,68,0.08);   border-color: var(--red);    color: var(--text2); }
+  .callout.danger strong { color: var(--red); }
+  .callout.success { background: rgba(16,185,129,0.08);  border-color: var(--green);  color: var(--text2); }
+  .callout.success strong { color: var(--green); }
+  .callout.purple  { background: rgba(167,139,250,0.08); border-color: var(--purple); color: var(--text2); }
+  .callout.purple strong { color: var(--purple); }
+
+  /* ── INFO TABLE ──────────────────────────────────────────────────────── */
+  .info-table { width: 100%; border-collapse: collapse; margin: 16px 0; border-radius: 10px; overflow: hidden; }
+  .info-table th, .info-table td { padding: 10px 14px; text-align: left; font-size: 13.5px; border-bottom: 1px solid var(--border); }
+  .info-table thead th { background: #0d1628; color: var(--text2); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .info-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  .info-table tbody tr:last-child td { border-bottom: none; }
+  .info-table td:first-child { font-family: var(--font-mono); font-size: 12px; color: var(--cyan); font-weight: 500; }
+  .info-table th:first-child { border-radius: 0; }
+
+  /* ── TROUBLESHOOT TABLE ──────────────────────────────────────────────── */
+  .trouble-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  .trouble-table th, .trouble-table td { padding: 11px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .trouble-table thead th { background: #0d1628; color: var(--text2); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .trouble-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+  .trouble-table tbody tr:last-child td { border-bottom: none; }
+  .trouble-table .prob { color: var(--red); font-weight: 600; }
+  .trouble-table .fix  { color: var(--green); }
+
+  /* ── SECTION ─────────────────────────────────────────────────────────── */
+  section { margin-bottom: 16px; }
+  .section-divider { height: 1px; background: var(--border); margin: 48px 0; }
+
+  /* ── PROGRESS BAR ────────────────────────────────────────────────────── */
+  .phase-progress {
+    display: flex; gap: 6px; margin-bottom: 36px; flex-wrap: wrap;
+  }
+  .pp-item {
+    flex: 1; min-width: 80px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; text-align: center;
+    font-size: 11px; color: var(--text3); transition: all 0.2s;
+    cursor: pointer;
+  }
+  .pp-item:hover { border-color: var(--accent); color: var(--accent); }
+  .pp-item .pp-num { font-family: var(--font-mono); font-weight: 700; font-size: 16px; color: var(--text2); display: block; margin-bottom: 2px; }
+
+  /* ── BACK TO TOP ─────────────────────────────────────────────────────── */
+  .back-to-top {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; text-decoration: none;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+    transition: all 0.2s; z-index: 100;
+    opacity: 0; pointer-events: none;
+  }
+  .back-to-top.visible { opacity: 1; pointer-events: all; }
+  .back-to-top:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.5); }
+
+  /* ── ANIMATIONS ──────────────────────────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeUp 0.5s ease both; }
+  .fade-in:nth-child(2) { animation-delay: 0.08s; }
+  .fade-in:nth-child(3) { animation-delay: 0.16s; }
+  .fade-in:nth-child(4) { animation-delay: 0.24s; }
+  .fade-in:nth-child(5) { animation-delay: 0.32s; }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .hero { padding: 40px 28px 36px; }
+    .hero h1 { font-size: 28px; }
+    .content { padding: 32px 28px 60px; }
+    .arch-diagram { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); margin: 8px 0; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .compare-hdr.after, .compare-cell.after { border-left: none; border-top: 1px solid var(--border); }
+  }
+
+  /* ── INLINE BADGE ────────────────────────────────────────────────────── */
+  .badge {
+    display: inline-block; padding: 1px 7px; border-radius: 4px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+    font-family: var(--font-mono);
+  }
+  p { margin-bottom: 14px; color: var(--text2); }
+  ul, ol { padding-left: 22px; margin-bottom: 14px; color: var(--text2); }
+  li { margin-bottom: 6px; font-size: 14px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  strong { color: var(--text); font-weight: 600; }
+  h2 { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--text); margin: 32px 0 12px; }
+  h3 { font-family: var(--font-head); font-size: 16px; font-weight: 700; color: var(--text); margin: 24px 0 10px; }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- ── SIDEBAR ──────────────────────────────────────────────────────── -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🤖</div>
+      <div class="logo-title">ADO Daily Summary Agent</div>
+      <div class="logo-sub">Integration Guide</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Getting Started</div>
+      <a class="nav-item" href="#overview"><span class="nav-icon">🗺️</span> Overview</a>
+      <a class="nav-item" href="#architecture"><span class="nav-icon">🏗️</span> Architecture</a>
+    </div>
+
+    <div class="nav-section" style="margin-top:8px">
+      <div class="nav-label">Phases</div>
+      <a class="nav-item" href="#phase1"><span class="nav-icon">🔑</span> Phase 1 — PAT Setup <span class="nav-badge" style="background:rgba(20,184,166,0.15);color:var(--teal)">30m</span></a>
+      <a class="nav-item" href="#phase2"><span class="nav-icon">⚙️</span> Phase 2 — Backend <span class="nav-badge" style="background:rgba(59,130,246,0.15);color:var(--blue)">2-3h</span></a>
+      <a class="nav-item" href="#phase3"><span class="nav-icon">⚛️</span> Phase 3 — React App <span class="nav-badge" style="background:rgba(167,139,250,0.15);color:var(--purple)">30m</span></a>
+      <a class="nav-item" href="#phase4"><span class="nav-icon">☁️</span> Phase 4 — Deploy <span class="nav-badge" style="background:rgba(245,158,11,0.15);color:var(--orange)">1-2h</span></a>
+      <a class="nav-item" href="#phase5"><span class="nav-icon">🔗</span> Phase 5 — Embed in ADO</a>
+    </div>
+
+    <div class="nav-section" style="margin-top:8px">
+      <div class="nav-label">Reference</div>
+      <a class="nav-item" href="#troubleshoot"><span class="nav-icon">🐛</span> Troubleshooting</a>
+      <a class="nav-item" href="#envvars"><span class="nav-icon">🔐</span> Env Variables</a>
+      <a class="nav-item" href="#endpoints"><span class="nav-icon">🌐</span> API Endpoints</a>
+      <a class="nav-item" href="#extension"><span class="nav-icon">🧩</span> Extension Template</a>
+    </div>
+
+    <div class="sidebar-footer">
+      Built for Azure DevOps<br>
+      Powered by Claude AI + Azure Functions
+    </div>
+  </nav>
+
+  <!-- ── MAIN ─────────────────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero" id="top">
+      <div class="hero-eyebrow">📋 Integration Guide — v1.0</div>
+      <h1>ADO Daily Summary Agent<br><span>Integration Guide</span></h1>
+      <p class="hero-desc">Connect your React agent to live Azure DevOps data. Replace mock data with real work items, set up a secure backend, and schedule daily email summaries — step by step.</p>
+      <div class="hero-pills">
+        <div class="hero-pill"><span>🔑</span> Azure DevOps REST API</div>
+        <div class="hero-pill"><span>⚙️</span> Azure Functions Backend</div>
+        <div class="hero-pill"><span>🤖</span> Claude AI (Anthropic)</div>
+        <div class="hero-pill"><span>📧</span> Automated Daily Email</div>
+        <div class="hero-pill"><span>🚀</span> GitHub Pages Ready</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ── OVERVIEW ──────────────────────────────────────────────────── -->
+      <section id="overview">
+        <div class="phase-progress">
+          <div class="pp-item" onclick="location.href='#phase1'"><span class="pp-num">P1</span>PAT Setup</div>
+          <div class="pp-item" onclick="location.href='#phase2'"><span class="pp-num">P2</span>Backend</div>
+          <div class="pp-item" onclick="location.href='#phase3'"><span class="pp-num">P3</span>React App</div>
+          <div class="pp-item" onclick="location.href='#phase4'"><span class="pp-num">P4</span>Deploy</div>
+          <div class="pp-item" onclick="location.href='#phase5'"><span class="pp-num">P5</span>Embed</div>
+        </div>
+
+        <h2>Before vs After</h2>
+        <p>Right now the agent runs on hardcoded mock data. Here's what changes after following this guide:</p>
+
+        <div class="compare-grid">
+          <div class="compare-hdr before">❌ Before — Mock Data</div>
+          <div class="compare-hdr after">✅ After — Live ADO Data</div>
+
+          <div class="compare-cell">Work items hardcoded in the .jsx file</div>
+          <div class="compare-cell after">Work items fetched live from your real ADO project via REST API</div>
+
+          <div class="compare-cell">Leave plans are hardcoded arrays</div>
+          <div class="compare-cell after">Leave plans pulled from ADO team capacity tab automatically</div>
+
+          <div class="compare-cell">Anthropic API key exposed in the browser</div>
+          <div class="compare-cell after">API key stored securely in Azure backend — never visible to users</div>
+
+          <div class="compare-cell">Must be opened manually — no schedule</div>
+          <div class="compare-cell after">Daily email summary sent at 8am every weekday automatically</div>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-icon">⏱️</span>
+          <div class="callout-body"><strong>Total Time Estimate</strong>Phase 1 (PAT + test) ~30 min · Phase 2 (backend) ~2–3 hrs · Phase 3 (React update) ~30 min · Phase 4 (deploy) ~1–2 hrs. One focused afternoon.</div>
+        </div>
+      </section>
+
+      <!-- ── ARCHITECTURE ───────────────────────────────────────────────── -->
+      <section id="architecture">
+        <div class="section-divider"></div>
+        <h2>Architecture at a Glance</h2>
+        <p>Here is how all the pieces connect once fully integrated:</p>
+        <div class="arch-diagram">
+          <div class="arch-node">
+            <div class="an-icon">👤</div>
+            <div class="an-title">React App</div>
+            <div class="an-sub">Your browser UI<br>Azure Static Web App</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-node" style="border-color:rgba(99,102,241,0.4)">
+            <div class="an-icon">⚙️</div>
+            <div class="an-title">Azure Function</div>
+            <div class="an-sub">Secure backend<br>Holds all API keys</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-node">
+            <div class="an-icon">📋</div>
+            <div class="an-title">Azure DevOps</div>
+            <div class="an-sub">Work items, sprints<br>Team capacity</div>
+          </div>
+          <div class="arch-arrow" style="color:var(--purple)">↕</div>
+          <div class="arch-node" style="border-color:rgba(167,139,250,0.4)">
+            <div class="an-icon">🤖</div>
+            <div class="an-title">Claude API</div>
+            <div class="an-sub">Anthropic AI<br>Generates summaries</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- PHASE 1 -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="phase1">
+        <div class="section-divider"></div>
+        <div class="phase-header">
+          <div class="phase-number" style="background:rgba(20,184,166,0.15);color:var(--teal)">P1</div>
+          <div class="phase-title" style="color:var(--teal)">Create Your ADO Personal Access Token</div>
+          <div class="phase-time">~30 min</div>
+        </div>
+
+        <p>A Personal Access Token (PAT) is like a password that lets your app read data from ADO. You create it once and store it securely in your backend.</p>
+
+        <div class="callout danger">
+          <span class="callout-icon">🚨</span>
+          <div class="callout-body"><strong>Security Rule #1 — Never paste your PAT into your React code or push it to GitHub.</strong> It goes into a backend environment variable only. Treat it like a bank password.</div>
+        </div>
+
+        <div class="section-heading">Step-by-Step: Create the PAT</div>
+        <div class="steps">
+          <div class="step fade-in">
+            <div class="step-num" style="background:rgba(20,184,166,0.15);color:var(--teal)">1</div>
+            <div class="step-body">
+              <div class="step-title">Navigate to Personal Access Tokens</div>
+              <div class="step-desc">Open your browser → go to <code>https://dev.azure.com/[YOUR-ORG]</code> → click your <strong>profile picture</strong> (top right) → select <strong>Personal Access Tokens</strong></div>
+            </div>
+          </div>
+          <div class="step fade-in">
+            <div class="step-num" style="background:rgba(20,184,166,0.15);color:var(--teal)">2</div>
+            <div class="step-body">
+              <div class="step-title">Create a New Token</div>
+              <div class="step-desc">Click <strong>+ New Token</strong> (blue button top right) → fill in:<br>
+              <strong>Name:</strong> <code>ADO-Daily-Agent</code> &nbsp;|&nbsp; <strong>Organization:</strong> your org &nbsp;|&nbsp; <strong>Expiration:</strong> 90 days &nbsp;|&nbsp; <strong>Scopes:</strong> Custom defined</div>
+            </div>
+          </div>
+          <div class="step fade-in">
+            <div class="step-num" style="background:rgba(20,184,166,0.15);color:var(--teal)">3</div>
+            <div class="step-body">
+              <div class="step-title">Set Minimum Required Permissions</div>
+              <div class="step-desc">Under <strong>Scopes</strong>, tick ONLY these:<br>
+              ✅ <strong>Work Items → Read</strong><br>
+              ✅ <strong>Project and Team → Read</strong><br>
+              ✅ <strong>Member Entitlement Management → Read</strong> (for leave/capacity)</div>
+            </div>
+          </div>
+          <div class="step fade-in">
+            <div class="step-num" style="background:rgba(20,184,166,0.15);color:var(--teal)">4</div>
+            <div class="step-body">
+              <div class="step-title">Copy and Save the Token</div>
+              <div class="step-desc">Click <strong>Create</strong> — the token string appears <strong>exactly once</strong>. Copy it immediately and paste it into a password manager. You cannot retrieve it again after closing this screen.</div>
+            </div>
+          </div>
+          <div class="step fade-in">
+            <div class="step-num" style="background:rgba(20,184,166,0.15);color:var(--teal)">5</div>
+            <div class="step-body">
+              <div class="step-title">Test Your PAT in the Browser</div>
+              <div class="step-desc">Paste this URL into a new browser tab — you should see JSON data come back:<br>
+              <code>https://dev.azure.com/YOUR-ORG/YOUR-PROJECT/_apis/wit/workitems?ids=1&api-version=7.1</code><br>
+              If prompted for credentials, enter anything as username and your PAT as password.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- PHASE 2 -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="phase2">
+        <div class="section-divider"></div>
+        <div class="phase-header">
+          <div class="phase-number" style="background:rgba(59,130,246,0.15);color:var(--blue)">P2</div>
+          <div class="phase-title" style="color:var(--blue)">Build the Backend (Azure Function)</div>
+          <div class="phase-time">~2–3 hrs</div>
+        </div>
+
+        <p>The backend is a small server-side function that sits between your React app and the ADO + Anthropic APIs. It keeps your secrets safe and does the heavy data fetching.</p>
+
+        <div class="section-heading">2A — Install Required Tools</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(59,130,246,0.15);color:var(--blue)">1</div>
+            <div class="step-body">
+              <div class="step-title">Install Node.js</div>
+              <div class="step-desc">Download from <a href="https://nodejs.org" target="_blank">nodejs.org</a> — choose the <strong>LTS version</strong>. This also installs <code>npm</code>.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(59,130,246,0.15);color:var(--blue)">2</div>
+            <div class="step-body">
+              <div class="step-title">Install Azure Functions Core Tools</div>
+              <div class="step-desc">Open your terminal and run:<br><code>npm install -g azure-functions-core-tools@4 --unsafe-perm true</code></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(59,130,246,0.15);color:var(--blue)">3</div>
+            <div class="step-body">
+              <div class="step-title">Install Azure CLI and Sign In</div>
+              <div class="step-desc">Download from <a href="https://learn.microsoft.com/en-us/cli/azure/install-azure-cli" target="_blank">Microsoft Docs</a>, then run: <code>az login</code> — a browser window opens, sign in with your Azure account.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(59,130,246,0.15);color:var(--blue)">4</div>
+            <div class="step-body">
+              <div class="step-title">Create Your Project Folder</div>
+              <div class="step-desc"><code>mkdir ado-summary-backend</code> &nbsp;&nbsp; <code>cd ado-summary-backend</code><br>
+              Then initialise: <code>func init --worker-runtime node --language javascript</code></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(59,130,246,0.15);color:var(--blue)">5</div>
+            <div class="step-body">
+              <div class="step-title">Create the Two Functions</div>
+              <div class="step-desc">
+                <code>func new --name GetSprintData --template "HTTP trigger" --authlevel anonymous</code><br>
+                <code>func new --name GenerateSummary --template "HTTP trigger" --authlevel anonymous</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-heading">2B — GetSprintData/index.js — Fetches Live ADO Data</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-filename">GetSprintData/index.js</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="code-lang" style="background:rgba(245,158,11,0.15);color:var(--orange)">JavaScript</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+          </div>
+<pre><span class="kw">const</span> <span class="num">fetch</span> = <span class="fn">require</span>(<span class="str">'node-fetch'</span>);
+
+<span class="cm">// Read secrets from environment variables — never hardcode these</span>
+<span class="kw">const</span> <span class="num">ADO_ORG</span>      = process.env.<span class="prop">ADO_ORG</span>;
+<span class="kw">const</span> <span class="num">ADO_PROJECT</span>  = process.env.<span class="prop">ADO_PROJECT</span>;
+<span class="kw">const</span> <span class="num">ADO_PAT</span>      = process.env.<span class="prop">ADO_PAT</span>;
+
+<span class="cm">// Base64 encode the PAT for ADO authentication</span>
+<span class="kw">const</span> <span class="num">adoAuth</span> = <span class="str">'Basic '</span> + Buffer.<span class="fn">from</span>(<span class="str">':'</span> + ADO_PAT).<span class="fn">toString</span>(<span class="str">'base64'</span>);
+<span class="kw">const</span> <span class="num">adoBase</span> = <span class="str">`https://dev.azure.com/<span class="num">${ADO_ORG}</span>/<span class="num">${ADO_PROJECT}</span>/_apis`</span>;
+
+<span class="cm">// ── Fetch current sprint info ──────────────────────────────────────────</span>
+<span class="kw">async function</span> <span class="fn">getCurrentSprint</span>() {
+  <span class="kw">const</span> <span class="num">url</span> = <span class="str">`<span class="num">${adoBase}</span>/work/teamsettings/iterations?$timeframe=current&api-version=7.1`</span>;
+  <span class="kw">const</span> <span class="num">res</span>  = <span class="kw">await</span> <span class="fn">fetch</span>(url, { headers: { Authorization: adoAuth } });
+  <span class="kw">const</span> <span class="num">data</span> = <span class="kw">await</span> res.<span class="fn">json</span>();
+  <span class="kw">return</span> data.value?.[<span class="num">0</span>] || <span class="kw">null</span>;
+}
+
+<span class="cm">// ── Fetch work items for the sprint ───────────────────────────────────</span>
+<span class="kw">async function</span> <span class="fn">getWorkItems</span>(iterationPath) {
+  <span class="cm">// Step 1: WIQL query to get IDs</span>
+  <span class="kw">const</span> <span class="num">wiql</span> = { query: <span class="str">`SELECT [System.Id] FROM WorkItems
+    WHERE [System.IterationPath] = '<span class="num">${iterationPath}</span>'
+    AND [System.State] NOT IN ('Removed')
+    ORDER BY [System.WorkItemType]`</span> };
+  <span class="kw">const</span> <span class="num">qRes</span>  = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`<span class="num">${adoBase}</span>/wit/wiql?api-version=7.1`</span>, {
+    method: <span class="str">'POST'</span>,
+    headers: { Authorization: adoAuth, <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+    body: <span class="fn">JSON.stringify</span>(wiql)
+  });
+  <span class="kw">const</span> <span class="num">qData</span> = <span class="kw">await</span> qRes.<span class="fn">json</span>();
+  <span class="kw">const</span> <span class="num">ids</span>   = qData.workItems?..<span class="fn">map</span>(i => i.id).<span class="fn">slice</span>(<span class="num">0</span>, <span class="num">50</span>).<span class="fn">join</span>(<span class="str">','</span>);
+  <span class="kw">if</span> (!ids) <span class="kw">return</span> [];
+
+  <span class="cm">// Step 2: Fetch full details for those IDs</span>
+  <span class="kw">const</span> <span class="num">fields</span> = [
+    <span class="str">'System.Id'</span>, <span class="str">'System.Title'</span>, <span class="str">'System.WorkItemType'</span>, <span class="str">'System.State'</span>,
+    <span class="str">'System.AssignedTo'</span>, <span class="str">'System.IterationPath'</span>,
+    <span class="str">'Microsoft.VSTS.Common.Priority'</span>, <span class="str">'Microsoft.VSTS.Common.Severity'</span>,
+    <span class="str">'Microsoft.VSTS.Scheduling.StoryPoints'</span>,
+    <span class="str">'Microsoft.VSTS.Scheduling.TargetDate'</span>,
+  ].<span class="fn">join</span>(<span class="str">','</span>);
+  <span class="kw">const</span> <span class="num">dRes</span>  = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`<span class="num">${adoBase}</span>/wit/workitems?ids=<span class="num">${ids}</span>&fields=<span class="num">${fields}</span>&api-version=7.1`</span>,
+    { headers: { Authorization: adoAuth } });
+  <span class="kw">const</span> <span class="num">dData</span> = <span class="kw">await</span> dRes.<span class="fn">json</span>();
+  <span class="kw">return</span> dData.value || [];
+}
+
+<span class="cm">// ── Fetch team capacity / leave plans ─────────────────────────────────</span>
+<span class="kw">async function</span> <span class="fn">getCapacity</span>(iterationId) {
+  <span class="kw">const</span> <span class="num">url</span> = <span class="str">`<span class="num">${adoBase}</span>/work/teamsettings/iterations/<span class="num">${iterationId}</span>/capacities?api-version=7.1`</span>;
+  <span class="kw">const</span> <span class="num">res</span>  = <span class="kw">await</span> <span class="fn">fetch</span>(url, { headers: { Authorization: adoAuth } });
+  <span class="kw">const</span> <span class="num">data</span> = <span class="kw">await</span> res.<span class="fn">json</span>();
+  <span class="kw">return</span> data.value || [];
+}
+
+<span class="cm">// ── Main handler ──────────────────────────────────────────────────────</span>
+module.exports = <span class="kw">async function</span>(context, req) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> <span class="num">sprint</span>   = <span class="kw">await</span> <span class="fn">getCurrentSprint</span>();
+    <span class="kw">if</span> (!sprint) { context.res = { status: <span class="num">404</span>, body: { error: <span class="str">'No active sprint'</span> } }; <span class="kw">return</span>; }
+
+    <span class="kw">const</span> [<span class="num">rawItems</span>, <span class="num">capacity</span>] = <span class="kw">await</span> Promise.<span class="fn">all</span>([
+      <span class="fn">getWorkItems</span>(sprint.path),
+      <span class="fn">getCapacity</span>(sprint.id)
+    ]);
+
+    <span class="kw">const</span> <span class="num">workItems</span> = rawItems.<span class="fn">map</span>(item => ({
+      id:       item.fields[<span class="str">'System.Id'</span>],
+      title:    item.fields[<span class="str">'System.Title'</span>],
+      type:     item.fields[<span class="str">'System.WorkItemType'</span>],
+      state:    item.fields[<span class="str">'System.State'</span>],
+      assignee: item.fields[<span class="str">'System.AssignedTo'</span>]?.displayName || <span class="str">'Unassigned'</span>,
+      points:   item.fields[<span class="str">'Microsoft.VSTS.Scheduling.StoryPoints'</span>] || <span class="num">0</span>,
+      eta:      item.fields[<span class="str">'Microsoft.VSTS.Scheduling.TargetDate'</span>]?.split(<span class="str">'T'</span>)[<span class="num">0</span>] || <span class="kw">null</span>,
+      priority: item.fields[<span class="str">'Microsoft.VSTS.Common.Priority'</span>] || <span class="str">'4 - Low'</span>,
+    }));
+
+    <span class="kw">const</span> <span class="num">leavePlans</span> = capacity
+      .<span class="fn">filter</span>(c => c.daysOff?.length > <span class="num">0</span>)
+      .<span class="fn">flatMap</span>(c => c.daysOff.<span class="fn">map</span>(d => ({
+        person: c.teamMember.displayName,
+        from: d.start.split(<span class="str">'T'</span>)[<span class="num">0</span>],
+        to:   d.end.split(<span class="str">'T'</span>)[<span class="num">0</span>],
+        type: <span class="str">'Leave'</span>
+      })));
+
+    context.res = {
+      status: <span class="num">200</span>,
+      headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>, <span class="str">'Access-Control-Allow-Origin'</span>: <span class="str">'*'</span> },
+      body: <span class="fn">JSON.stringify</span>({ sprint, workItems, leavePlans })
+    };
+  } <span class="kw">catch</span> (err) {
+    context.res = { status: <span class="num">500</span>, body: { error: err.message } };
+  }
+};</pre>
+        </div>
+
+        <div class="section-heading">2C — GenerateSummary/index.js — Secure Claude API Proxy</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-filename">GenerateSummary/index.js</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="code-lang" style="background:rgba(245,158,11,0.15);color:var(--orange)">JavaScript</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+          </div>
+<pre><span class="kw">const</span> <span class="num">fetch</span> = <span class="fn">require</span>(<span class="str">'node-fetch'</span>);
+
+module.exports = <span class="kw">async function</span>(context, req) {
+  <span class="kw">const</span> { <span class="num">messages</span>, <span class="num">systemPrompt</span> } = req.body;
+
+  <span class="kw">const</span> <span class="num">res</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.anthropic.com/v1/messages'</span>, {
+    method: <span class="str">'POST'</span>,
+    headers: {
+      <span class="str">'Content-Type'</span>:      <span class="str">'application/json'</span>,
+      <span class="str">'x-api-key'</span>:         process.env.<span class="prop">ANTHROPIC_API_KEY</span>,
+      <span class="str">'anthropic-version'</span>: <span class="str">'2023-06-01'</span>
+    },
+    body: <span class="fn">JSON.stringify</span>({
+      model:      <span class="str">'claude-sonnet-4-20250514'</span>,
+      max_tokens: <span class="num">1000</span>,
+      system:     systemPrompt,
+      messages:   messages
+    })
+  });
+
+  <span class="kw">const</span> <span class="num">data</span> = <span class="kw">await</span> res.<span class="fn">json</span>();
+  context.res = {
+    status: <span class="num">200</span>,
+    headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>, <span class="str">'Access-Control-Allow-Origin'</span>: <span class="str">'*'</span> },
+    body: <span class="fn">JSON.stringify</span>({ reply: data.content?.[<span class="num">0</span>]?.text || <span class="str">''</span> })
+  };
+};</pre>
+        </div>
+
+        <div class="section-heading">2D — local.settings.json — Your Secrets File</div>
+        <div class="callout danger">
+          <span class="callout-icon">🚨</span>
+          <div class="callout-body"><strong>Add this file to .gitignore immediately!</strong> Run: <code>echo 'local.settings.json' >> .gitignore</code> — this prevents your secrets from ever being uploaded to GitHub.</div>
+        </div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-filename">local.settings.json</span>
+            <span class="code-lang" style="background:rgba(239,68,68,0.15);color:var(--red)">NEVER COMMIT</span>
+          </div>
+<pre>{
+  <span class="prop">"IsEncrypted"</span>: <span class="kw">false</span>,
+  <span class="prop">"Values"</span>: {
+    <span class="prop">"AzureWebJobsStorage"</span>:       <span class="str">""</span>,
+    <span class="prop">"FUNCTIONS_WORKER_RUNTIME"</span>:  <span class="str">"node"</span>,
+    <span class="prop">"ADO_ORG"</span>:                   <span class="str">"your-organisation-name"</span>,
+    <span class="prop">"ADO_PROJECT"</span>:               <span class="str">"your-project-name"</span>,
+    <span class="prop">"ADO_PAT"</span>:                   <span class="str">"paste-your-PAT-here"</span>,
+    <span class="prop">"ANTHROPIC_API_KEY"</span>:         <span class="str">"sk-ant-your-key-here"</span>
+  }
+}</pre>
+        </div>
+
+        <div class="section-heading">2E — Test Locally</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(59,130,246,0.15);color:var(--blue)">1</div>
+            <div class="step-body">
+              <div class="step-title">Install Dependencies</div>
+              <div class="step-desc"><code>npm install node-fetch@2</code></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(59,130,246,0.15);color:var(--blue)">2</div>
+            <div class="step-body">
+              <div class="step-title">Start the Functions Locally</div>
+              <div class="step-desc"><code>func start</code> — you should see both function URLs printed in the terminal.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(59,130,246,0.15);color:var(--blue)">3</div>
+            <div class="step-body">
+              <div class="step-title">Test in Browser</div>
+              <div class="step-desc">Open: <code>http://localhost:7071/api/GetSprintData</code> — you should see a JSON response with your real ADO work items. If you see an error, double-check your PAT and org/project names.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- PHASE 3 -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="phase3">
+        <div class="section-divider"></div>
+        <div class="phase-header">
+          <div class="phase-number" style="background:rgba(167,139,250,0.15);color:var(--purple)">P3</div>
+          <div class="phase-title" style="color:var(--purple)">Update the React App to Use Live Data</div>
+          <div class="phase-time">~30 min</div>
+        </div>
+
+        <p>Replace the hardcoded mock data and direct Anthropic API calls in your <code>ado-daily-summary-agent.jsx</code> with calls to your secure backend.</p>
+
+        <div class="section-heading">3A — Add Live Data Fetching</div>
+        <p>At the <strong>top of your component</strong>, replace the hardcoded <code>WORK_ITEMS</code>, <code>LEAVE_PLANS</code> and <code>SPRINT</code> constants with this:</p>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-filename">ado-daily-summary-agent.jsx — replace mock data section</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+<pre><span class="cm">// Point to your backend (local while testing, Azure URL after deploying)</span>
+<span class="kw">const</span> <span class="num">BACKEND_URL</span> = <span class="str">'http://localhost:7071/api'</span>; <span class="cm">// update after deploy</span>
+
+<span class="cm">// Inside your component, replace useState initial values:</span>
+<span class="kw">const</span> [sprintData,  setSprintData]  = <span class="fn">useState</span>(<span class="kw">null</span>);
+<span class="kw">const</span> [workItems,   setWorkItems]   = <span class="fn">useState</span>([]);
+<span class="kw">const</span> [leavePlans,  setLeavePlans]  = <span class="fn">useState</span>([]);
+<span class="kw">const</span> [dataLoading, setDataLoading] = <span class="fn">useState</span>(<span class="kw">true</span>);
+<span class="kw">const</span> [dataError,   setDataError]   = <span class="fn">useState</span>(<span class="kw">null</span>);
+
+<span class="cm">// Add this useEffect to load data on mount + auto-refresh every 5 minutes</span>
+<span class="fn">useEffect</span>(() => {
+  <span class="kw">async function</span> <span class="fn">loadData</span>() {
+    <span class="kw">try</span> {
+      <span class="fn">setDataLoading</span>(<span class="kw">true</span>);
+      <span class="kw">const</span> <span class="num">res</span>  = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`<span class="num">${BACKEND_URL}</span>/GetSprintData`</span>);
+      <span class="kw">const</span> <span class="num">data</span> = <span class="kw">await</span> res.<span class="fn">json</span>();
+      <span class="fn">setSprintData</span>(data.sprint);
+      <span class="fn">setWorkItems</span>(data.workItems);
+      <span class="fn">setLeavePlans</span>(data.leavePlans);
+    } <span class="kw">catch</span> (err) {
+      <span class="fn">setDataError</span>(<span class="str">'Could not load ADO data: '</span> + err.message);
+    } <span class="kw">finally</span> {
+      <span class="fn">setDataLoading</span>(<span class="kw">false</span>);
+    }
+  }
+  <span class="fn">loadData</span>();
+  <span class="kw">const</span> <span class="num">interval</span> = <span class="fn">setInterval</span>(loadData, <span class="num">5</span> * <span class="num">60</span> * <span class="num">1000</span>); <span class="cm">// refresh every 5 min</span>
+  <span class="kw">return</span> () => <span class="fn">clearInterval</span>(interval);
+}, []);</pre>
+        </div>
+
+        <div class="section-heading">3B — Replace the Anthropic API Call</div>
+        <p>Inside your <code>sendMessage</code> function, replace the direct <code>fetch('https://api.anthropic.com/...')</code> call with a call to your secure backend:</p>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-filename">ado-daily-summary-agent.jsx — inside sendMessage()</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+<pre><span class="cm">// REMOVE the old direct Anthropic call and REPLACE with:</span>
+<span class="kw">const</span> <span class="num">res</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`<span class="num">${BACKEND_URL}</span>/GenerateSummary`</span>, {
+  method:  <span class="str">'POST'</span>,
+  headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+  body: <span class="fn">JSON.stringify</span>({
+    messages:     newMessages.<span class="fn">map</span>(m => ({ role: m.role, content: m.content })),
+    systemPrompt: <span class="fn">buildSystemPrompt</span>(workItems, leavePlans, sprintData)
+  })
+});
+<span class="kw">const</span> <span class="num">data</span>  = <span class="kw">await</span> res.<span class="fn">json</span>();
+<span class="kw">const</span> <span class="num">reply</span> = data.reply || <span class="str">'No response received.'</span>;</pre>
+        </div>
+
+        <div class="callout success">
+          <span class="callout-icon">✅</span>
+          <div class="callout-body"><strong>Test it end-to-end</strong> — start your backend with <code>func start</code>, open your React app, and you should see real ADO work items loading. The AI chat now summarises your actual sprint data.</div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- PHASE 4 -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="phase4">
+        <div class="section-divider"></div>
+        <div class="phase-header">
+          <div class="phase-number" style="background:rgba(245,158,11,0.15);color:var(--orange)">P4</div>
+          <div class="phase-title" style="color:var(--orange)">Deploy to Azure</div>
+          <div class="phase-time">~1–2 hrs</div>
+        </div>
+
+        <div class="section-heading">4A — Deploy the Backend (Azure Function App)</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-filename">Terminal — run these commands in order</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+<pre><span class="cm"># 1. Create a resource group</span>
+az group create --name ado-agent-rg --location eastus
+
+<span class="cm"># 2. Create a storage account (required by Azure Functions)</span>
+az storage account create \
+  --name adoagentstorage \
+  --location eastus \
+  --resource-group ado-agent-rg \
+  --sku Standard_LRS
+
+<span class="cm"># 3. Create the Function App</span>
+az functionapp create \
+  --resource-group ado-agent-rg \
+  --consumption-plan-location eastus \
+  --runtime node --runtime-version 18 \
+  --functions-version 4 \
+  --name ado-daily-agent-api \
+  --storage-account adoagentstorage
+
+<span class="cm"># 4. Upload your secrets as environment variables (NOT in code)</span>
+az functionapp config appsettings set \
+  --name ado-daily-agent-api \
+  --resource-group ado-agent-rg \
+  --settings \
+    ADO_ORG="your-org" \
+    ADO_PROJECT="your-project" \
+    ADO_PAT="your-pat-here" \
+    ANTHROPIC_API_KEY="sk-ant-your-key"
+
+<span class="cm"># 5. Deploy your code</span>
+func azure functionapp publish ado-daily-agent-api</pre>
+        </div>
+        <p style="margin-top:10px">Your backend is now live at: <code>https://ado-daily-agent-api.azurewebsites.net/api/GetSprintData</code></p>
+
+        <div class="section-heading">4B — Deploy the React Frontend (Azure Static Web Apps — Free)</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(245,158,11,0.15);color:var(--orange)">1</div>
+            <div class="step-body">
+              <div class="step-title">Push Your React App to GitHub</div>
+              <div class="step-desc">Create a GitHub repository and push your React project. Make sure <code>local.settings.json</code> is in <code>.gitignore</code>.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(245,158,11,0.15);color:var(--orange)">2</div>
+            <div class="step-body">
+              <div class="step-title">Create Azure Static Web App</div>
+              <div class="step-desc">Go to <a href="https://portal.azure.com" target="_blank">portal.azure.com</a> → <strong>Create a resource</strong> → search <strong>Static Web App</strong> → Create → Plan type: <strong>Free</strong> → connect to your GitHub repository.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(245,158,11,0.15);color:var(--orange)">3</div>
+            <div class="step-body">
+              <div class="step-title">Wait for Auto-Deploy</div>
+              <div class="step-desc">Azure sets up GitHub Actions automatically. In 2–3 minutes your app is live at a URL like: <code>https://icy-river-0123.azurestaticapps.net</code></div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(245,158,11,0.15);color:var(--orange)">4</div>
+            <div class="step-body">
+              <div class="step-title">Update BACKEND_URL in the React App</div>
+              <div class="step-desc">Change <code>BACKEND_URL</code> at the top of your file from <code>http://localhost:7071/api</code> to <code>https://ado-daily-agent-api.azurewebsites.net/api</code> → push to GitHub → it redeploys automatically.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-heading">4C — Daily Email Summary (Scheduled Azure Function)</div>
+        <p>Add a timer-triggered function that sends the daily summary email at 8am every weekday.</p>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-filename">DailySummaryEmail/function.json</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+<pre>{
+  <span class="prop">"bindings"</span>: [{
+    <span class="prop">"name"</span>:      <span class="str">"myTimer"</span>,
+    <span class="prop">"type"</span>:      <span class="str">"timerTrigger"</span>,
+    <span class="prop">"direction"</span>: <span class="str">"in"</span>,
+    <span class="prop">"schedule"</span>:  <span class="str">"0 0 8 * * 1-5"</span>
+  }]
+}
+<span class="cm">// 0 0 8 * * 1-5  = 8:00am UTC, Monday–Friday
+// For IST (UTC+5:30): use "0 30 2 * * 1-5"
+// For EST (UTC-5):    use "0 0 13 * * 1-5"</span></pre>
+        </div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-filename">DailySummaryEmail/index.js</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+<pre><span class="kw">const</span> <span class="num">fetch</span>       = <span class="fn">require</span>(<span class="str">'node-fetch'</span>);
+<span class="kw">const</span> <span class="num">nodemailer</span> = <span class="fn">require</span>(<span class="str">'nodemailer'</span>);
+
+module.exports = <span class="kw">async function</span>(context, myTimer) {
+  <span class="cm">// 1. Fetch live ADO data from your own endpoint</span>
+  <span class="kw">const</span> <span class="num">adoRes</span>  = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://ado-daily-agent-api.azurewebsites.net/api/GetSprintData'</span>);
+  <span class="kw">const</span> <span class="num">adoData</span> = <span class="kw">await</span> adoRes.<span class="fn">json</span>();
+
+  <span class="cm">// 2. Ask Claude to generate the daily summary</span>
+  <span class="kw">const</span> <span class="num">aiRes</span> = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.anthropic.com/v1/messages'</span>, {
+    method:  <span class="str">'POST'</span>,
+    headers: {
+      <span class="str">'Content-Type'</span>:      <span class="str">'application/json'</span>,
+      <span class="str">'x-api-key'</span>:         process.env.<span class="prop">ANTHROPIC_API_KEY</span>,
+      <span class="str">'anthropic-version'</span>: <span class="str">'2023-06-01'</span>
+    },
+    body: <span class="fn">JSON.stringify</span>({
+      model:      <span class="str">'claude-sonnet-4-20250514'</span>,
+      max_tokens: <span class="num">1000</span>,
+      messages:   [{ role: <span class="str">'user'</span>, content: <span class="str">'Generate today daily sprint summary with all risks and leave impact'</span> }],
+      system:     <span class="fn">buildSystemPrompt</span>(adoData)  <span class="cm">// reuse your existing function</span>
+    })
+  });
+  <span class="kw">const</span> <span class="num">aiData</span>  = <span class="kw">await</span> aiRes.<span class="fn">json</span>();
+  <span class="kw">const</span> <span class="num">summary</span> = aiData.content?.[<span class="num">0</span>]?.text || <span class="str">'Could not generate summary'</span>;
+
+  <span class="cm">// 3. Send the email via SMTP (Office 365 / Gmail)</span>
+  <span class="kw">const</span> <span class="num">transporter</span> = nodemailer.<span class="fn">createTransport</span>({
+    host: <span class="str">'smtp.office365.com'</span>,  <span class="cm">// swap with smtp.gmail.com for Gmail</span>
+    port: <span class="num">587</span>,
+    auth: { user: process.env.<span class="prop">EMAIL_FROM</span>, pass: process.env.<span class="prop">EMAIL_PASSWORD</span> }
+  });
+  <span class="kw">await</span> transporter.<span class="fn">sendMail</span>({
+    from:    process.env.<span class="prop">EMAIL_FROM</span>,
+    to:      process.env.<span class="prop">EMAIL_RECIPIENTS</span>,
+    subject: <span class="str">`Daily Sprint Summary — <span class="num">${new Date().toDateString()}</span>`</span>,
+    html:    <span class="str">`&lt;pre style="font-family:sans-serif;line-height:1.6"&gt;<span class="num">${summary}</span>&lt;/pre&gt;`</span>
+  });
+  context.log(<span class="str">'Daily summary sent ✓'</span>);
+};</pre>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">Terminal — add email env vars to Azure</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre>az functionapp config appsettings set \
+  --name ado-daily-agent-api \
+  --resource-group ado-agent-rg \
+  --settings \
+    EMAIL_FROM="your-email@company.com" \
+    EMAIL_PASSWORD="your-app-password" \
+    EMAIL_RECIPIENTS="manager@co.com,lead@co.com,dev@co.com"</pre>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- PHASE 5 -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="phase5">
+        <div class="section-divider"></div>
+        <div class="phase-header">
+          <div class="phase-number" style="background:rgba(14,182,166,0.15);color:var(--teal)">P5</div>
+          <div class="phase-title" style="color:var(--teal)">Embed in Your ADO Dashboard</div>
+          <div class="phase-time">~20 min</div>
+        </div>
+
+        <div class="section-heading">Option A — Embedded Webpage Widget (Quickest)</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(14,182,166,0.15);color:var(--teal)">1</div>
+            <div class="step-body"><div class="step-title">Go to your ADO Dashboard</div><div class="step-desc">Your ADO project → <strong>Dashboards</strong> → <strong>Edit</strong></div></div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(14,182,166,0.15);color:var(--teal)">2</div>
+            <div class="step-body"><div class="step-title">Add Embedded Webpage Widget</div><div class="step-desc">Click <strong>+ Add Widget</strong> → search <strong>Embedded Webpage</strong> → paste your Azure Static Web App URL</div></div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(14,182,166,0.15);color:var(--teal)">3</div>
+            <div class="step-body"><div class="step-title">Set Size and Save</div><div class="step-desc">Set widget size to <strong>10 columns × 8 rows</strong> → click Save</div></div>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div class="callout-body"><strong>If you see a blank page</strong> — ADO's Content Security Policy may block the iframe. Ask your ADO admin to whitelist your Static Web App domain, or use the Extension option below.</div>
+        </div>
+
+        <div class="section-heading">Option B — Native ADO Extension (Professional)</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num" style="background:rgba(14,182,166,0.15);color:var(--teal)">1</div>
+            <div class="step-body"><div class="step-title">Install Extension Packaging Tool</div><div class="step-desc"><code>npm install -g tfx-cli</code></div></div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(14,182,166,0.15);color:var(--teal)">2</div>
+            <div class="step-body"><div class="step-title">Create vss-extension.json</div><div class="step-desc">Use the template in the Appendix below</div></div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(14,182,166,0.15);color:var(--teal)">3</div>
+            <div class="step-body"><div class="step-title">Package the Extension</div><div class="step-desc"><code>tfx extension create --manifest-globs vss-extension.json</code> — creates a <code>.vsix</code> file</div></div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(14,182,166,0.15);color:var(--teal)">4</div>
+            <div class="step-body"><div class="step-title">Publish to Marketplace (Private)</div><div class="step-desc">Go to <a href="https://marketplace.visualstudio.com/manage" target="_blank">marketplace.visualstudio.com/manage</a> → create Publisher → upload .vsix → set Visibility: <strong>Private</strong> → share with your org</div></div>
+          </div>
+          <div class="step">
+            <div class="step-num" style="background:rgba(14,182,166,0.15);color:var(--teal)">5</div>
+            <div class="step-body"><div class="step-title">Install in ADO</div><div class="step-desc">Organisation Settings → Extensions → find your extension → Install → then Add Widget as normal</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- TROUBLESHOOTING -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="troubleshoot">
+        <div class="section-divider"></div>
+        <h2>🐛 Troubleshooting Guide</h2>
+        <table class="trouble-table">
+          <thead><tr><th>Problem</th><th>Likely Cause</th><th>Fix</th></tr></thead>
+          <tbody>
+            <tr><td class="prob">401 Unauthorized from ADO API</td><td>PAT expired or wrong permissions</td><td class="fix">Regenerate PAT with Work Items Read + Project Read scope</td></tr>
+            <tr><td class="prob">CORS error in browser console</td><td>Backend not returning CORS headers</td><td class="fix">Add <code>Access-Control-Allow-Origin: *</code> to function response headers</td></tr>
+            <tr><td class="prob">Work items return empty array</td><td>Wrong team name or iteration path</td><td class="fix">Log <code>sprint.path</code> and compare with your ADO iteration paths in Project Settings</td></tr>
+            <tr><td class="prob">Embedded widget shows blank</td><td>ADO CSP blocking the iframe</td><td class="fix">Use the native extension approach or ask ADO admin to whitelist your domain</td></tr>
+            <tr><td class="prob">Email not sending</td><td>SMTP credentials wrong</td><td class="fix">Use an App Password (not your account password); check firewall allows port 587</td></tr>
+            <tr><td class="prob">Azure Function times out</td><td>Too many work items fetched</td><td class="fix">Add <code>.slice(0, 50)</code> after <code>queryData.workItems</code></td></tr>
+            <tr><td class="prob">Claude gives wrong answers</td><td>System prompt missing context</td><td class="fix">Log <code>buildSystemPrompt()</code> output and verify all work item data is being passed in</td></tr>
+            <tr><td class="prob">Daily email not arriving</td><td>Timer cron expression wrong timezone</td><td class="fix">For IST use <code>0 30 2 * * 1-5</code> instead of <code>0 0 8 * * 1-5</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- APPENDIX -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="envvars">
+        <div class="section-divider"></div>
+        <h2>🔐 Environment Variables Reference</h2>
+        <table class="info-table">
+          <thead><tr><th>Variable</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>ADO_ORG</td><td>Your Azure DevOps organisation name (from <code>dev.azure.com/YOUR-ORG</code>)</td></tr>
+            <tr><td>ADO_PROJECT</td><td>Your project name exactly as it appears in ADO</td></tr>
+            <tr><td>ADO_PAT</td><td>Personal Access Token with Work Items Read + Project Read permissions</td></tr>
+            <tr><td>ANTHROPIC_API_KEY</td><td>Your Anthropic API key from <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></td></tr>
+            <tr><td>EMAIL_FROM</td><td>The email address the daily summary is sent from</td></tr>
+            <tr><td>EMAIL_PASSWORD</td><td>App password for the sending email account (NOT your login password)</td></tr>
+            <tr><td>EMAIL_RECIPIENTS</td><td>Comma-separated list of recipient email addresses</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="endpoints">
+        <h2>🌐 ADO REST API Endpoints Used</h2>
+        <table class="info-table">
+          <thead><tr><th>Endpoint</th><th>Full URL Pattern</th></tr></thead>
+          <tbody>
+            <tr><td>Current Sprint</td><td><code>GET /work/teamsettings/iterations?$timeframe=current&api-version=7.1</code></td></tr>
+            <tr><td>WIQL Query</td><td><code>POST /wit/wiql?api-version=7.1</code></td></tr>
+            <tr><td>Work Item Details</td><td><code>GET /wit/workitems?ids={ids}&fields={fields}&api-version=7.1</code></td></tr>
+            <tr><td>Team Capacity</td><td><code>GET /work/teamsettings/iterations/{id}/capacities?api-version=7.1</code></td></tr>
+            <tr><td>Team Members</td><td><code>GET /projects/{project}/teams/{team}/members?api-version=7.1</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="extension">
+        <h2>🧩 vss-extension.json Template</h2>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-filename">vss-extension.json</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+<pre>{
+  <span class="prop">"manifestVersion"</span>: <span class="num">1</span>,
+  <span class="prop">"id"</span>:              <span class="str">"ado-daily-summary-agent"</span>,
+  <span class="prop">"name"</span>:            <span class="str">"ADO Daily Summary Agent"</span>,
+  <span class="prop">"version"</span>:         <span class="str">"1.0.0"</span>,
+  <span class="prop">"publisher"</span>:       <span class="str">"YOUR-PUBLISHER-ID"</span>,
+  <span class="prop">"public"</span>:          <span class="kw">false</span>,
+  <span class="prop">"targets"</span>: [{ <span class="prop">"id"</span>: <span class="str">"Microsoft.VisualStudio.Services"</span> }],
+  <span class="prop">"description"</span>:     <span class="str">"AI-powered daily sprint summary with risk and leave alerts"</span>,
+  <span class="prop">"categories"</span>:      [<span class="str">"Azure Boards"</span>],
+  <span class="prop">"icons"</span>:           { <span class="prop">"default"</span>: <span class="str">"images/icon.png"</span> },
+  <span class="prop">"contributions"</span>: [{
+    <span class="prop">"id"</span>:      <span class="str">"daily-summary-widget"</span>,
+    <span class="prop">"type"</span>:    <span class="str">"ms.vss-dashboards-web.widget"</span>,
+    <span class="prop">"targets"</span>: [<span class="str">"ms.vss-dashboards-web.widget-catalog"</span>],
+    <span class="prop">"properties"</span>: {
+      <span class="prop">"name"</span>:             <span class="str">"Daily Summary Agent"</span>,
+      <span class="prop">"description"</span>:      <span class="str">"Live sprint summary with ETA risk and leave alerts"</span>,
+      <span class="prop">"uri"</span>:              <span class="str">"index.html"</span>,
+      <span class="prop">"supportedSizes"</span>:   [{ <span class="prop">"rowSpan"</span>: <span class="num">6</span>, <span class="prop">"columnSpan"</span>: <span class="num">8</span> }],
+      <span class="prop">"supportedScopes"</span>:  [<span class="str">"project_team"</span>]
+    }
+  }],
+  <span class="prop">"files"</span>: [{ <span class="prop">"path"</span>: <span class="str">"."</span>, <span class="prop">"addressable"</span>: <span class="kw">true</span> }]
+}</pre>
+        </div>
+
+        <div class="callout success" style="margin-top:40px">
+          <span class="callout-icon">🚀</span>
+          <div class="callout-body"><strong>You're ready to go!</strong> Follow Phase 1 → 2 → 3 → 4 → 5 in order. Each phase builds on the last. If you get stuck, the most common cause is a typo in environment variable names — double-check them first.</div>
+        </div>
+      </section>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /page-wrap -->
+
+<a class="back-to-top" href="#top" id="backTop">↑</a>
+
+<script>
+  // ── COPY CODE BUTTONS ──────────────────────────────────────────────────
+  function copyCode(btn) {
+    const pre = btn.closest('.code-wrap').querySelector('pre');
+    const text = pre.innerText || pre.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      btn.style.color = '#10b981';
+      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 2000);
+    });
+  }
+
+  // ── BACK TO TOP BUTTON ─────────────────────────────────────────────────
+  const backTop = document.getElementById('backTop');
+  window.addEventListener('scroll', () => {
+    backTop.classList.toggle('visible', window.scrollY > 400);
+  });
+
+  // ── ACTIVE NAV HIGHLIGHT ───────────────────────────────────────────────
+  const sections = document.querySelectorAll('section[id]');
+  const navItems = document.querySelectorAll('.nav-item');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navItems.forEach(n => n.classList.remove('active'));
+        const active = document.querySelector(`.nav-item[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3, rootMargin: '-80px 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  // ── STEP ANIMATION ON SCROLL ───────────────────────────────────────────
+  const stepObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+        stepObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.step').forEach((step, i) => {
+    step.style.opacity = '0';
+    step.style.transform = 'translateY(16px)';
+    step.style.transition = `opacity 0.4s ease ${i * 0.06}s, transform 0.4s ease ${i * 0.06}s`;
+    stepObserver.observe(step);
+  });
+</script>
+
+</body>
+</html>
